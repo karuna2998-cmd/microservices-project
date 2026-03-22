@@ -2,20 +2,23 @@ pipeline {
     agent any
 
     stages {
-        stage('Deploy To Kubernetes') {
+        stage('Checkout SCM') {
             steps {
-                withKubeCredentials(kubectlCredentials: [[caCertificate: '', clusterName: 'EKS-1', contextName: '', credentialsId: 'k8-token', namespace: 'webapps', serverUrl: 'https://312BF4D9ECE63DA2CB452958724D17E5.gr7.us-east-1.eks.amazonaws.com']]) {
-                    sh "kubectl apply -f deployment-service.yml"
-                    
+                git 'https://github.com/GoogleCloudPlatform/microservices-demo.git'
+            }
+        }
+
+        stage('Build & Tag Docker Image') {
+            steps {
+                dir('src/adservice') {
+                    sh 'docker build -t adservice .'
                 }
             }
         }
-        
-        stage('verify Deployment') {
+
+        stage('Push Docker Image') {
             steps {
-                withKubeCredentials(kubectlCredentials: [[caCertificate: '', clusterName: 'EKS-1', contextName: '', credentialsId: 'k8-token', namespace: 'webapps', serverUrl: 'https://312BF4D9ECE63DA2CB452958724D17E5.gr7.us-east-1.eks.amazonaws.com']]) {
-                    sh "kubectl get svc -n webapps"
-                }
+                sh 'echo "Push step here (DockerHub/ECR)"'
             }
         }
     }
